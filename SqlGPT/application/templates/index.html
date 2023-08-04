@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>SqlGPT with Azure OpenAI💡 </title>
+    <link href="{{url_for('static',filename='dist/css/output.css')}}" rel="stylesheet">
+      <link rel="favicon" href="{{ url_for('static', filename='favicon/favicon.ico') }}">
+      <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='favicon/apple-touch-icon.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon/favicon-16x16.png') }}">
+    <link rel="manifest" href="{{ url_for('static', filename='favicon//site.webmanifest') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+  </head>
+
+
+  <body>
+    
+    <header class="bg-white p-2 flex justify-between items-center">
+      <h1 class="text-lg font-medium">SqlGPT with Azure OpenAI💡</h1>
+        <div>
+          <button class="text-sm text-yellow-500 hover:text-yellow-800" onclick="setSQLConnection()">Config</button>
+          <a href="https://github.com/louis-li/sqlgpt" class="text-blue-500 hover:text-blue-800 text-sm">About</a>
+        </div>
+    </header>
+
+  
+ <!-- Alert Info  -->
+ <div class="border flex justify-between 
+  w-auto px-4 py-3 rounded relative 
+  hidden" style="background-color: rgb(197, 51, 51);color: white;" id="error-alert" role="alert">
+  <span class="block sm:inline" id="text-error"></span>
+  <strong class="text-xl align-center alert-del" style="cursor: pointer;" id="close">&times;</strong>
+</div>
+
+
+    <div class="lg:flex ml-2 mr-2">
+      <div class="lg:w-3/4 min-h-screen max-h-screen">
+        <div class="w-full flex flex-col h-5/6">
+          <div id="messages-container" style="overflow: auto;" class="sm:max-lg:mb-[12rem]">
+
+            <div id="messages" class="w-full flex flex-col mt-2" >
+              <div class="bg-indigo-500 text-white p-2 rounded-lg mb-2 self-start">
+                <p class="text-sm">This is a sample chatbot connecting to a demo Azure Sql Database.</p>
+                <p class="text-sm"> This chatbot will query the database and get you the answers directly from SQL. </p>
+                <br/>
+                Sample Questions:
+                <p class="text-sm">- How many tables are there? List all tables in the database. </p>
+                <p class="text-sm">- Describe PlayListTrack </p>
+                <p class="text-sm">- Who are the top 3 customers by purchased amount?</p>
+                <p class="text-sm">- What are the most polular tracks?</p>
+                <p class="text-sm">- List the total sales per country. Which country's customers spent the most? </p>
+                <p class="text-sm">- Show a table of playlist names and the total number of tracks in each playlist ordered by total number of tracks in descending order in a table.</p>
+              </div>
+
+          </div>
+        </div>
+
+        <div class="fixed bottom-0 w-full mt-4 mb-2 lg:w-3/4">
+        <form id="message-form" autocomplete="off" class="flex items-stretch">
+          <input autocomplete="off" id="message-input" class="bg-white p-2 rounded-lg ml-2 text-sm w-full" type="text" placeholder="Type your message here...">
+          <button id="button-submit" class="bg-blue-500 text-white p-2 rounded-lg ml-2 mr-2 text-sm sm:max-lg:p-5" type="submit">Send</button>
+        </form>
+        </div>
+      </div>
+    </div>
+    <div id="thought-container"  class="lg:w-1/4 p-2 sm:max-lg:hidden">
+      <p class="text-lg font-medium">Thought Process:</p>
+      <br>
+      <div id="thought" class="w-full flex flex-col mt-2" >
+
+      </div>
+      
+
+    </div>
+  </div>
+
+  <div class="flex items-center justify-center h-full">
+    
+ 
+</div>
+
+<div class="fixed z-10 overflow-y-auto top-0 w-full left-0 show" id="sqlmodal">
+  <div class="flex items-center justify-center min-height-100vh pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+    <div class="fixed inset-0 transition-opacity">
+      <div class="absolute inset-0 bg-gray-900 opacity-75" />
+    </div>
+    <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+    <div class=" text-sm inline-block align-center bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full" role="dialog" aria-modal="true" aria-labelledby="modal-headline">
+       <form id="config-form">
+        <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+          <h2>Enter your Azure SQL connection here:</h2><br>
+          <label>SQL Server:</label>
+          <input id="sqlserver" class="w-full bg-gray-100 p-2 mt-2 mb-3" placeholder="Enter the full uri/severname here. E.g. https://sqlgpt.openai.azure.com">
+          <br>
+          <label>Database:</label>
+          <input id="database" class="w-full bg-gray-100 p-2 mt-2 mb-3" placeholder="Enter your database name here">
+          <br>
+          <label>Username:</label>
+          <input id="username" class="w-full bg-gray-100 p-2 mt-2 mb-3" placeholder="Enter your username here">
+          <br>
+          <label>Password:</label>
+          <input id="password" type="password" class="w-full bg-gray-100 p-2 mt-2 mb-3" placeholder="Paste you password here">
+          <br>
+          <label>Azure OpenAI Endpoint:</label>
+          <input id="openai_base"class="w-full bg-gray-100 p-2 mt-2 mb-3" placeholder="Enter your Azure OpenAI Endpoint here">
+          <br>
+          <label>Azure OpenAI Key:</label>
+          <input id="openai_key" type="password" class="w-full bg-gray-100 p-2 mt-2 mb-3" placeholder="Paste you API Key here">
+          <br>
+          <label>Azure OpenAI Deployment:</label>
+          <input id="openai_deployment" class="w-full bg-gray-100 p-2 mt-2 mb-3" placeholder="Enter your deployment name here">
+          <br>
+        </div>
+        <div class="bg-gray-200 px-4 py-3 text-right">
+            <button type="submit" class="py-2 px-4 bg-blue-500 text-white rounded hover:bg-blue-700 mr-2">OK</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.getElementById('sqlmodal').classList.toggle('hidden')
+</script>
+
+  <script src="{{url_for('static',filename='src/authapi.js')}}"></script>
+  <script src="{{url_for('static',filename='src/chat.js')}}"></script>
+  <script src="{{url_for('static',filename='src/choiceChange.js')}}"></script>
+
+  </body>
+</html>
